@@ -10,12 +10,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit();
 }
 
-include_once __DIR__ . 'config/database.php';
-include_once __DIR__ . 'models/Task.php';
-include_once __DIR__ . 'models/Developer.php';
-include_once __DIR__ . 'models/Project.php';
-include_once __DIR__ . 'models/Phase.php';
-include_once __DIR__ . 'models/ProjectTask.php';
+include_once __DIR__ . '/config/database.php';
+include_once __DIR__ . '/models/task.php';
+include_once __DIR__ . '/models/developer.php';
+include_once __DIR__ . '/models/project.php';
+include_once __DIR__ . '/models/phase.php';
+include_once __DIR__ . '/models/projecttask.php';
 
 $database = new Database();
 $db = $database->getConnection();

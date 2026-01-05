@@ -1,0 +1,1455 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Task Timeline Calendar 2026</title>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root {
+      --bg-primary: #f9fafb;
+      --bg-secondary: #ffffff;
+      --text-primary: #111827;
+      --text-secondary: #6b7280;
+      --border-color: #e5e7eb;
+      --hover-bg: #f3f4f6;
+    }
+
+    [data-theme="dark"] {
+      --bg-primary: #111827;
+      --bg-secondary: #1f2937;
+      --text-primary: #f9fafb;
+      --text-secondary: #9ca3af;
+      --border-color: #374151;
+      --hover-bg: #374151;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      transition: background-color 0.3s, color 0.3s;
+    }
+
+    @keyframes spin {
+      from {
+        transform: rotate(0deg);
+      }
+
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .animate-spin {
+      animation: spin 1s linear infinite;
+    }
+
+    /* Theme-specific overrides for Tailwind classes */
+    [data-theme="dark"] .bg-white {
+      background-color: var(--bg-secondary) !important;
+    }
+
+    [data-theme="dark"] .bg-gray-50 {
+      background-color: #1f2937 !important;
+    }
+
+    [data-theme="dark"] .bg-gray-100 {
+      background-color: #374151 !important;
+    }
+
+    [data-theme="dark"] .text-gray-800 {
+      color: #f9fafb !important;
+    }
+
+    [data-theme="dark"] .text-gray-600 {
+      color: #d1d5db !important;
+    }
+
+    [data-theme="dark"] .text-gray-500 {
+      color: #9ca3af !important;
+    }
+
+    [data-theme="dark"] .border-gray-200 {
+      border-color: #374151 !important;
+    }
+
+    [data-theme="dark"] .border-gray-300 {
+      border-color: #4b5563 !important;
+    }
+
+    [data-theme="dark"] .hover\:bg-gray-100:hover {
+      background-color: #374151 !important;
+    }
+
+    [data-theme="dark"] .hover\:bg-gray-50:hover {
+      background-color: #1f2937 !important;
+    }
+
+    /* Theme toggle button */
+    .theme-toggle {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 1000;
+      background-color: var(--bg-secondary);
+      border: 2px solid var(--border-color);
+      padding: 0.75rem;
+      border-radius: 9999px;
+      cursor: pointer;
+      transition: all 0.3s;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .theme-toggle:hover {
+      transform: scale(1.05);
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    /* Back button */
+    .back-button {
+      background-color: var(--bg-secondary);
+      color: var(--text-primary);
+      border: 1px solid var(--border-color);
+      transition: all 0.2s;
+    }
+
+    .back-button:hover {
+      background-color: var(--hover-bg);
+    }
+  </style>
+</head>
+
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState, useEffect } = React;
+
+    // Icons
+    const ChevronLeft = () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="15 18 9 12 15 6"></polyline></svg>;
+    const ChevronRight = () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="9 18 15 12 9 6"></polyline></svg>;
+    const Plus = ({ size = 24 }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>;
+    const X = ({ size = 24 }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>;
+    const Calendar = ({ size = 24 }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>;
+    const Users = ({ size = 24 }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>;
+    const RefreshCw = ({ size = 24, className = '' }) => <svg className={className} width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>;
+    const AlertCircle = ({ size = 24 }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>;
+    const Edit = ({ size = 24 }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>;
+    const Tag = ({ size = 24 }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>;
+    const MessageSquare = ({ size = 24 }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>;
+    const Repeat = ({ size = 24 }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="17 1 21 5 17 9"></polyline><path d="M3 11V9a4 4 0 0 1 4-4h14"></path><polyline points="7 23 3 19 7 15"></polyline><path d="M21 13v2a4 4 0 0 1-4 4H3"></path></svg>;
+    const Check = ({ size = 24 }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="20 6 9 17 4 12"></polyline></svg>;
+    const Loader = ({ size = 24 }) => <svg className="animate-spin" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="2" x2="12" y2="6"></line><line x1="12" y1="18" x2="12" y2="22"></line><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line><line x1="2" y1="12" x2="6" y2="12"></line><line x1="18" y1="12" x2="22" y2="12"></line><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line></svg>;
+    const Save = ({ size = 24 }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>;
+    const User = ({ size = 24 }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>;
+    const Clock = ({ size = 24 }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>;
+    const Flag = ({ size = 24 }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path><line x1="4" y1="22" x2="4" y2="15"></line></svg>;
+    const Activity = ({ size = 24 }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>;
+    const FileText = ({ size = 24 }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>;
+    const Search = ({ size = 24 }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>;
+    const Home = ({ size = 24 }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>;
+    const Moon = ({ size = 24 }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>;
+    const Sun = ({ size = 24 }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>;
+
+    function TaskCalendar() {
+      const [currentMonth, setCurrentMonth] = useState(0);
+      const [tasks, setTasks] = useState({});
+      const [developers, setDevelopers] = useState([]);
+      const [showAddTask, setShowAddTask] = useState(false);
+      const [showManageDev, setShowManageDev] = useState(false);
+      const [selectedDate, setSelectedDate] = useState(null);
+      const [newTask, setNewTask] = useState({
+        title: '', description: '', priority: 'medium', assignedTo: null,
+        startDate: '', category: '', recurring: 'none'
+      });
+      const [selectedTask, setSelectedTask] = useState(null);
+      const [editingInModal, setEditingInModal] = useState(false);
+      const [newDevName, setNewDevName] = useState('');
+      const [newDevColor, setNewDevColor] = useState('');
+      const [loading, setLoading] = useState(false);
+      const [initialLoading, setInitialLoading] = useState(true);
+      const [error, setError] = useState(null);
+      const [newComment, setNewComment] = useState('');
+      const [upcomingFilter, setUpcomingFilter] = useState('all');
+      const [searchQuery, setSearchQuery] = useState('');
+      const [theme, setTheme] = useState('light');
+
+      const API_URL = 'http://localhost/tasktimeline/api';
+      const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+      const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+      const colors = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#06B6D4', '#F97316', '#14B8A6', '#A855F7'];
+      const categories = ['ShopMetro OCI', 'MarengEms', 'EGC', 'CMS ShopMetro', 'CMS B2B2C', 'Others'];
+
+      // Theme management
+      useEffect(() => {
+        const savedTheme = localStorage.getItem('calendarTheme') || 'light';
+        setTheme(savedTheme);
+        document.documentElement.setAttribute('data-theme', savedTheme);
+      }, []);
+
+      const toggleTheme = () => {
+        const newTheme = theme === 'light' ? 'dark' : 'light';
+        setTheme(newTheme);
+        localStorage.setItem('calendarTheme', newTheme);
+        document.documentElement.setAttribute('data-theme', newTheme);
+      };
+
+      useEffect(() => {
+        const loadData = async () => {
+          await loadDevelopers();
+          await loadTasks();
+          setInitialLoading(false);
+        };
+        loadData();
+      }, []);
+
+      const loadDevelopers = async () => {
+        try {
+          const response = await fetch(`${API_URL}/developers`);
+          const data = await response.json();
+          if (data.records) {
+            setDevelopers(data.records.map(dev => ({ id: dev.id, name: dev.name, color: dev.color })));
+          }
+        } catch (err) {
+          console.error('Failed to load developers:', err);
+        }
+      };
+
+      const loadTasks = async () => {
+        try {
+          setLoading(true);
+          const response = await fetch(`${API_URL}/tasks`);
+          const data = await response.json();
+
+          if (data.records) {
+            const tasksByDate = {};
+            data.records.forEach(task => {
+              const date = task.task_date;
+              if (!tasksByDate[date]) tasksByDate[date] = [];
+              tasksByDate[date].push({
+                id: task.id,
+                title: task.title,
+                description: task.description,
+                priority: task.priority,
+                status: task.status,
+                assignedTo: task.assigned_to ? parseInt(task.assigned_to) : null,
+                startDate: task.start_date || '',
+                category: task.category || '',
+                recurring: task.recurring || 'none',
+                comments: task.comments ? JSON.parse(task.comments) : []
+              });
+            });
+            setTasks(tasksByDate);
+          }
+        } catch (err) {
+          setError('Failed to load tasks: ' + err.message);
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      const createTask = async (taskData) => {
+        try {
+          const startDateToSend = taskData.startDate && taskData.startDate.trim() !== ''
+            ? taskData.startDate
+            : null;
+
+          const response = await fetch(`${API_URL}/tasks`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              task_date: taskData.date,
+              title: taskData.title,
+              description: taskData.description,
+              priority: taskData.priority,
+              status: 'pending',
+              assigned_to: taskData.assignedTo,
+              start_date: startDateToSend,
+              category: taskData.category || '',
+              recurring: taskData.recurring || 'none',
+              comments: JSON.stringify([])
+            })
+          });
+
+          if (response.ok) {
+            await loadTasks();
+            return true;
+          }
+          return false;
+        } catch (err) {
+          setError('Failed to create task: ' + err.message);
+          return false;
+        }
+      };
+
+      const updateTask = async (taskId, updates) => {
+        try {
+          const response = await fetch(`${API_URL}/tasks/${taskId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(updates)
+          });
+
+          if (response.ok) {
+            await loadTasks();
+            return true;
+          } else {
+            const responseData = await response.json();
+            setError('Update failed: ' + (responseData.message || 'Unknown error'));
+            return false;
+          }
+        } catch (err) {
+          setError('Failed to update task: ' + err.message);
+          return false;
+        }
+      };
+
+      const deleteTask = async (taskId) => {
+        try {
+          const response = await fetch(`${API_URL}/tasks/${taskId}`, { method: 'DELETE' });
+          if (response.ok) {
+            await loadTasks();
+            return true;
+          }
+          return false;
+        } catch (err) {
+          setError('Failed to delete task');
+          return false;
+        }
+      };
+
+      const createDeveloper = async (name, color) => {
+        try {
+          const response = await fetch(`${API_URL}/developers`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, color })
+          });
+          if (response.ok) {
+            await loadDevelopers();
+            return true;
+          }
+          return false;
+        } catch (err) {
+          setError('Failed to create developer');
+          return false;
+        }
+      };
+
+      const updateDeveloper = async (devId, updates) => {
+        try {
+          const response = await fetch(`${API_URL}/developers/${devId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(updates)
+          });
+          if (response.ok) {
+            await loadDevelopers();
+            return true;
+          }
+          return false;
+        } catch (err) {
+          setError('Failed to update developer');
+          return false;
+        }
+      };
+
+      const deleteDeveloper = async (devId) => {
+        try {
+          const response = await fetch(`${API_URL}/developers/${devId}`, { method: 'DELETE' });
+          if (response.ok) {
+            await loadDevelopers();
+            await loadTasks();
+            return true;
+          }
+          return false;
+        } catch (err) {
+          setError('Failed to delete developer');
+          return false;
+        }
+      };
+
+      const getDaysInMonth = (month, year) => new Date(year, month + 1, 0).getDate();
+      const getFirstDayOfMonth = (month, year) => new Date(year, month, 1).getDay();
+      const formatDate = (year, month, day) => `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+      const getDeveloperById = (id) => developers.find(dev => dev.id === id);
+
+      const addDeveloper = async () => {
+        if (!newDevName.trim()) return;
+        const color = newDevColor || colors[developers.length % colors.length];
+        const success = await createDeveloper(newDevName, color);
+        if (success) {
+          setNewDevName('');
+          setNewDevColor('');
+        }
+      };
+
+      const removeDeveloper = async (id) => {
+        if (confirm('Delete this developer?')) {
+          await deleteDeveloper(id);
+        }
+      };
+
+      const addComment = async (task) => {
+        if (!newComment.trim()) return;
+        const updatedComments = [...(task.comments || []), {
+          text: newComment,
+          timestamp: new Date().toISOString(),
+          author: 'User'
+        }];
+        const success = await updateTask(task.id, { comments: JSON.stringify(updatedComments) });
+        if (success) {
+          setNewComment('');
+          const updatedTaskData = tasks[task.date]?.find(t => t.id === task.id);
+          if (updatedTaskData) {
+            setSelectedTask({ ...updatedTaskData, date: task.date });
+          }
+        }
+      };
+
+      const jumpToToday = () => {
+        const today = new Date();
+        setCurrentMonth(today.getMonth());
+      };
+
+      const quickToggleStatus = async (task, e) => {
+        e.stopPropagation();
+        const newStatus = task.status === 'completed' ? 'pending' :
+          task.status === 'pending' ? 'in-progress' :
+            task.status === 'in-progress' ? 'for-qa-testing' :
+              'completed';
+
+        await updateTask(task.id, {
+          title: task.title,
+          description: task.description,
+          priority: task.priority,
+          status: newStatus,
+          assigned_to: task.assignedTo,
+          start_date: task.startDate || null,
+          category: task.category,
+          recurring: task.recurring
+        });
+      };
+
+      const groupTasksByDate = (tasks) => {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        const groups = {
+          overdue: [],
+          today: [],
+          tomorrow: [],
+          thisWeek: [],
+          nextWeek: [],
+          later: []
+        };
+
+        tasks.forEach(task => {
+          const taskDate = new Date(task.date);
+          taskDate.setHours(0, 0, 0, 0);
+
+          const diffTime = taskDate - today;
+          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+          if (diffDays < 0) {
+            groups.overdue.push(task);
+          } else if (diffDays === 0) {
+            groups.today.push(task);
+          } else if (diffDays === 1) {
+            groups.tomorrow.push(task);
+          } else if (diffDays <= 7) {
+            groups.thisWeek.push(task);
+          } else if (diffDays <= 14) {
+            groups.nextWeek.push(task);
+          } else {
+            groups.later.push(task);
+          }
+        });
+
+        return groups;
+      };
+
+      const getDateLabel = (dateStr) => {
+        const taskDate = new Date(dateStr);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        taskDate.setHours(0, 0, 0, 0);
+
+        const diffTime = taskDate - today;
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+        if (diffDays === 0) return 'Today';
+        if (diffDays === 1) return 'Tomorrow';
+        if (diffDays === -1) return 'Yesterday';
+
+        return taskDate.toLocaleDateString('en-US', {
+          weekday: 'short',
+          month: 'short',
+          day: 'numeric'
+        });
+      };
+
+      const renderCalendar = () => {
+        const year = 2026;
+        const daysInMonth = getDaysInMonth(currentMonth, year);
+        const firstDay = getFirstDayOfMonth(currentMonth, year);
+        const days = [];
+
+        for (let i = 0; i < firstDay; i++) {
+          days.push(<div key={`empty-${i}`} className="h-28 border border-gray-200 bg-gray-50"></div>);
+        }
+
+        for (let day = 1; day <= daysInMonth; day++) {
+          const dateKey = formatDate(year, currentMonth, day);
+          const dayTasks = tasks[dateKey] || [];
+          const today = new Date();
+          const isToday = today.getFullYear() === year && today.getMonth() === currentMonth && today.getDate() === day;
+
+          days.push(
+            <div
+              key={day}
+              className={`h-28 border border-gray-200 p-1 overflow-hidden cursor-pointer hover:bg-gray-50 ${isToday ? 'bg-blue-50 border-blue-300' : ''}`}
+              onClick={() => {
+                setSelectedDate({ year, month: currentMonth, day });
+                setShowAddTask(true);
+                setNewTask({ title: '', description: '', priority: 'medium', assignedTo: null, startDate: '', category: '', recurring: 'none' });
+              }}
+            >
+              <div className={`text-sm font-semibold mb-1 ${isToday ? 'text-blue-600' : ''}`}>{day}</div>
+              <div className="space-y-0.5">
+                {dayTasks.slice(0, 3).map((task) => {
+                  const dev = getDeveloperById(task.assignedTo);
+                  return (
+                    <div
+                      key={task.id}
+                      className={`text-xs p-1 rounded truncate flex items-center gap-1 ${task.priority === 'high' ? 'bg-red-100 text-red-800' :
+                        task.priority === 'medium' ? 'bg-yellow-100 text-yellow-800' :
+                          'bg-green-100 text-green-800'
+                        } ${task.status === 'completed' ? 'opacity-50 line-through' : ''}`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedTask({ ...task, date: dateKey });
+                      }}
+                    >
+                      {task.recurring !== 'none' && <Repeat size={10} />}
+                      {dev && <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: dev.color }}></div>}
+                      <span className="truncate flex-1">{task.title}</span>
+                      {task.category && (
+                        <span className="text-[9px] bg-white bg-opacity-50 px-1 rounded shrink-0">
+                          {task.category === 'ShopMetro OCI' ? 'OCI' :
+                            task.category === 'MarengEms' ? 'ME' :
+                              task.category === 'EGC' ? 'EGC' :
+                                task.category === 'CMS (ShopMetro & MarengEms)' ? 'CMS' : 'OTH'}
+                        </span>
+                      )}
+                    </div>
+                  );
+                })}
+                {dayTasks.length > 3 && <div className="text-xs text-gray-500 font-medium px-1">+{dayTasks.length - 3} more</div>}
+              </div>
+            </div>
+          );
+        }
+        return days;
+      };
+
+      const handleAddTask = async () => {
+        if (!newTask.title.trim() || !selectedDate) {
+          alert('Please enter a task title');
+          return;
+        }
+        const dateKey = formatDate(selectedDate.year, selectedDate.month, selectedDate.day);
+        const success = await createTask({ ...newTask, date: dateKey });
+        if (success) {
+          setNewTask({ title: '', description: '', priority: 'medium', assignedTo: null, startDate: '', category: '', recurring: 'none' });
+          setShowAddTask(false);
+        }
+      };
+
+      const handleUpdateInModal = async () => {
+        if (!selectedTask) return;
+
+        setLoading(true);
+
+        const startDateToSend = selectedTask.startDate && selectedTask.startDate.trim() !== ''
+          ? selectedTask.startDate
+          : null;
+
+        const updates = {
+          title: selectedTask.title,
+          description: selectedTask.description,
+          priority: selectedTask.priority,
+          assigned_to: selectedTask.assignedTo,
+          start_date: startDateToSend,
+          category: selectedTask.category || '',
+          recurring: selectedTask.recurring || 'none',
+          status: selectedTask.status
+        };
+
+        const success = await updateTask(selectedTask.id, updates);
+
+        if (success) {
+          try {
+            const response = await fetch(`${API_URL}/tasks/${selectedTask.id}`);
+            const data = await response.json();
+
+            if (response.ok && data) {
+              setSelectedTask({
+                id: data.id,
+                title: data.title,
+                description: data.description,
+                priority: data.priority,
+                status: data.status,
+                assignedTo: data.assigned_to ? parseInt(data.assigned_to) : null,
+                startDate: data.start_date || '',
+                category: data.category || '',
+                recurring: data.recurring || 'none',
+                comments: data.comments ? JSON.parse(data.comments) : [],
+                date: selectedTask.date
+              });
+            }
+
+            setEditingInModal(false);
+            setError('✓ Task updated successfully!');
+            setTimeout(() => setError(null), 3000);
+          } catch (err) {
+            console.error('Error fetching updated task:', err);
+          }
+        }
+
+        setLoading(false);
+      };
+
+      const handleDeleteTask = async (taskId) => {
+        if (confirm('Delete this task?')) {
+          await deleteTask(taskId);
+          setSelectedTask(null);
+        }
+      };
+
+      const getUpcomingTasks = () => {
+        const upcoming = [];
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        Object.entries(tasks).forEach(([date, dayTasks]) => {
+          const taskDate = new Date(date);
+          if (taskDate >= today) {
+            dayTasks.forEach(task => {
+              if (upcomingFilter === 'all' || task.status === upcomingFilter) {
+                if (!searchQuery ||
+                  task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                  task.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                  (task.category && task.category.toLowerCase().includes(searchQuery.toLowerCase()))) {
+                  upcoming.push({ date, ...task });
+                }
+              }
+            });
+          }
+        });
+
+        return upcoming.sort((a, b) => {
+          const dateCompare = new Date(a.date) - new Date(b.date);
+          if (dateCompare !== 0) return dateCompare;
+
+          const priorityOrder = { high: 0, medium: 1, low: 2 };
+          return priorityOrder[a.priority] - priorityOrder[b.priority];
+        });
+      };
+
+      const getTasksByDeveloper = () => {
+        const devTasks = {};
+        developers.forEach(dev => { devTasks[dev.id] = { developer: dev, count: 0, completed: 0 }; });
+        Object.entries(tasks).forEach(([date, dayTasks]) => {
+          dayTasks.forEach(task => {
+            if (task.assignedTo && devTasks[task.assignedTo]) {
+              devTasks[task.assignedTo].count++;
+              if (task.status === 'completed') devTasks[task.assignedTo].completed++;
+            }
+          });
+        });
+        return Object.values(devTasks);
+      };
+
+      if (initialLoading) {
+        return (
+          <div className="flex items-center justify-center min-h-screen bg-gray-50">
+            <div className="text-center">
+              <Loader size={48} />
+              <p className="mt-4 text-gray-600">Loading calendar...</p>
+            </div>
+          </div>
+        );
+      }
+
+      return (
+        <div className="max-w-7xl mx-auto p-6 min-h-screen">
+          {/* Theme Toggle Button */}
+          <button onClick={toggleTheme} className="theme-toggle" title="Toggle theme">
+            {theme === 'light' ? <Moon size={24} /> : <Sun size={24} />}
+          </button>
+
+          <div className="bg-white rounded-lg shadow-lg p-6">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-4">
+                <a href="index.html" className="back-button px-4 py-2 rounded-lg flex items-center gap-2 hover:shadow-md transition">
+                  <Home size={20} /> Dashboard
+                </a>
+                <h1 className="text-3xl font-bold text-gray-800">2026 IT-ECOMM Task Timeline</h1>
+              </div>
+              <div className="flex gap-2">
+                <button onClick={jumpToToday} className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 flex items-center gap-2">
+                  <Calendar size={20} /> Today
+                </button>
+                <button onClick={() => { loadDevelopers(); loadTasks(); }} className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
+                  {loading ? <Loader size={20} /> : <RefreshCw size={20} />}
+                </button>
+                <button onClick={() => setShowManageDev(true)} className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                  <Users size={20} /> Developers
+                </button>
+              </div>
+            </div>
+
+            {error && (
+              <div className={`mb-4 p-4 border rounded-lg flex items-center gap-2 ${error.includes('✓') || error.includes('success') ? 'bg-green-50 border-green-200 text-green-800' : 'bg-red-50 border-red-200 text-red-800'
+                }`}>
+                <AlertCircle size={20} />
+                <span>{error}</span>
+                <button onClick={() => setError(null)} className="ml-auto"><X size={20} /></button>
+              </div>
+            )}
+
+            <div className="flex items-center justify-center gap-4 mb-6">
+              <button onClick={() => setCurrentMonth(Math.max(0, currentMonth - 1))} disabled={currentMonth === 0} className="p-2 rounded-lg hover:bg-gray-100 disabled:opacity-50">
+                <ChevronLeft />
+              </button>
+              <span className="text-xl font-semibold min-w-48 text-center">{months[currentMonth]} 2026</span>
+              <button onClick={() => setCurrentMonth(Math.min(11, currentMonth + 1))} disabled={currentMonth === 11} className="p-2 rounded-lg hover:bg-gray-100 disabled:opacity-50">
+                <ChevronRight />
+              </button>
+            </div>
+
+            <div className="grid grid-cols-7 gap-0 mb-4">
+              {daysOfWeek.map(day => <div key={day} className="text-center font-semibold text-gray-600 py-2 bg-gray-100">{day}</div>)}
+            </div>
+
+            <div className="grid grid-cols-7 gap-0 border-t border-l border-gray-200">
+              {renderCalendar()}
+            </div>
+
+            <div className="mt-8 space-y-8">
+              <div>
+                <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+                  <Users size={20} /> Developer Workload
+                </h2>
+                <div className="space-y-2">
+                  {getTasksByDeveloper().map(({ developer, count, completed }) => (
+                    <div key={developer.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <div className="w-4 h-4 rounded-full" style={{ backgroundColor: developer.color }}></div>
+                        <span className="font-medium">{developer.name}</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className="w-24 bg-gray-200 rounded-full h-2">
+                          <div
+                            className="bg-green-500 h-2 rounded-full transition-all"
+                            style={{ width: `${count > 0 ? (completed / count) * 100 : 0}%` }}
+                          ></div>
+                        </div>
+                        <div className="text-sm text-gray-600 min-w-[60px] text-right">{completed}/{count} tasks</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-xl font-semibold flex items-center gap-2">
+                    <Calendar size={20} /> Upcoming Deadlines
+                  </h2>
+                  <div className="text-sm text-gray-500">
+                    {getUpcomingTasks().length} task{getUpcomingTasks().length !== 1 ? 's' : ''}
+                  </div>
+                </div>
+
+                <div className="mb-4 space-y-3">
+                  <div style={{ position: 'relative' }}>
+                    <input
+                      type="text"
+                      placeholder="🔍 Search tasks..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    />
+                  </div>
+
+                  <div className="flex gap-2 flex-wrap">
+                    <button onClick={() => setUpcomingFilter('all')} className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${upcomingFilter === 'all' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}>All</button>
+                    <button onClick={() => setUpcomingFilter('pending')} className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${upcomingFilter === 'pending' ? 'bg-gray-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}>Pending</button>
+                    <button onClick={() => setUpcomingFilter('in-progress')} className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${upcomingFilter === 'in-progress' ? 'bg-orange-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}>In Progress</button>
+                    <button onClick={() => setUpcomingFilter('for-qa-testing')} className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${upcomingFilter === 'for-qa-testing' ? 'bg-blue-400 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}>QA Testing</button>
+                    <button onClick={() => setUpcomingFilter('completed')} className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${upcomingFilter === 'completed' ? 'bg-green-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}>Completed</button>
+                  </div>
+                </div>
+
+                <div className="space-y-3 max-h-[700px] overflow-y-auto">
+                  {(() => {
+                    const upcomingTasks = getUpcomingTasks();
+                    const groupedTasks = groupTasksByDate(upcomingTasks);
+
+                    if (upcomingTasks.length === 0) {
+                      return <p className="text-gray-500 text-center py-8">No tasks found</p>;
+                    }
+
+                    const TaskCard = ({ task, borderColor, bgColor, hoverColor }) => {
+                      const dev = getDeveloperById(task.assignedTo);
+                      return (
+                        <div className={`${bgColor} border-l-4 ${borderColor} rounded-r-lg p-3 ${hoverColor} cursor-pointer transition ml-2`} onClick={() => setSelectedTask(task)}>
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-1">
+                                <button onClick={(e) => quickToggleStatus(task, e)} className={`flex-shrink-0 w-5 h-5 rounded border-2 ${borderColor.replace('border-', 'border-')} hover:bg-opacity-20 transition flex items-center justify-center`}>
+                                  {task.status === 'completed' && <Check size={14} />}
+                                </button>
+                                {dev && <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: dev.color }}></div>}
+                                <span className="font-bold text-gray-900 truncate">{task.title}</span>
+                              </div>
+                              <div className="flex items-center gap-2 text-xs text-gray-600 ml-7">
+                                <Clock size={12} />
+                                <span>{getDateLabel(task.date)}</span>
+                                {dev && <span>• {dev.name}</span>}
+                                {task.category && (
+                                  <span className="bg-white px-2 py-0.5 rounded">
+                                    {task.category === 'ShopMetro OCI' ? 'OCI' : task.category === 'MarengEms' ? 'ME' : task.category === 'EGC' ? 'EGC' : task.category === 'CMS (ShopMetro & MarengEms)' ? 'CMS' : 'OTH'}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2 flex-shrink-0">
+                              <span className={`px-2 py-1 rounded text-xs font-semibold ${task.status === 'completed' ? 'bg-green-500 text-white' : task.status === 'in-progress' ? 'bg-orange-500 text-white' : task.status === 'for-qa-testing' ? 'bg-blue-400 text-white' : 'bg-gray-300 text-gray-700'}`}>
+                                {task.status === 'for-qa-testing' ? 'QA' : task.status === 'in-progress' ? 'Progress' : task.status.charAt(0).toUpperCase() + task.status.slice(1)}
+                              </span>
+                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${task.priority === 'high' ? 'bg-red-100 text-red-800' : task.priority === 'medium' ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'}`}>
+                                {task.priority}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    };
+
+                    return (
+                      <>
+                        {groupedTasks.overdue.length > 0 && (
+                          <div>
+                            <div className="bg-gradient-to-r from-red-600 to-red-500 text-white px-4 py-2 rounded-lg font-bold flex items-center gap-2 sticky top-0 z-10">
+                              <AlertCircle size={18} /> Overdue ({groupedTasks.overdue.length})
+                            </div>
+                            <div className="space-y-2 mt-2">
+                              {groupedTasks.overdue.map(task => <TaskCard key={task.id} task={task} borderColor="border-red-500" bgColor="bg-red-50" hoverColor="hover:bg-red-100" />)}
+                            </div>
+                          </div>
+                        )}
+
+                        {groupedTasks.today.length > 0 && (
+                          <div>
+                            <div className="bg-gradient-to-r from-blue-600 to-blue-500 text-white px-4 py-2 rounded-lg font-bold flex items-center gap-2 sticky top-0 z-10">
+                              <Calendar size={18} /> Today ({groupedTasks.today.length})
+                            </div>
+                            <div className="space-y-2 mt-2">
+                              {groupedTasks.today.map(task => <TaskCard key={task.id} task={task} borderColor="border-blue-500" bgColor="bg-blue-50" hoverColor="hover:bg-blue-100" />)}
+                            </div>
+                          </div>
+                        )}
+
+                        {groupedTasks.tomorrow.length > 0 && (
+                          <div>
+                            <div className="bg-gradient-to-r from-purple-600 to-purple-500 text-white px-4 py-2 rounded-lg font-bold flex items-center gap-2 sticky top-0 z-10">
+                              <Clock size={18} /> Tomorrow ({groupedTasks.tomorrow.length})
+                            </div>
+                            <div className="space-y-2 mt-2">
+                              {groupedTasks.tomorrow.map(task => <TaskCard key={task.id} task={task} borderColor="border-purple-500" bgColor="bg-purple-50" hoverColor="hover:bg-purple-100" />)}
+                            </div>
+                          </div>
+                        )}
+
+                        {groupedTasks.thisWeek.length > 0 && (
+                          <div>
+                            <div className="bg-gradient-to-r from-green-600 to-green-500 text-white px-4 py-2 rounded-lg font-bold flex items-center gap-2 sticky top-0 z-10">
+                              <Calendar size={18} /> This Week ({groupedTasks.thisWeek.length})
+                            </div>
+                            <div className="space-y-2 mt-2">
+                              {groupedTasks.thisWeek.map(task => <TaskCard key={task.id} task={task} borderColor="border-green-500" bgColor="bg-green-50" hoverColor="hover:bg-green-100" />)}
+                            </div>
+                          </div>
+                        )}
+
+                        {(groupedTasks.nextWeek.length > 0 || groupedTasks.later.length > 0) && (
+                          <div>
+                            <div className="bg-gradient-to-r from-gray-600 to-gray-500 text-white px-4 py-2 rounded-lg font-bold flex items-center gap-2 sticky top-0 z-10">
+                              <Calendar size={18} /> Upcoming ({groupedTasks.nextWeek.length + groupedTasks.later.length})
+                            </div>
+                            <div className="space-y-2 mt-2">
+                              {[...groupedTasks.nextWeek, ...groupedTasks.later].map(task => <TaskCard key={task.id} task={task} borderColor="border-gray-400" bgColor="bg-gray-50" hoverColor="hover:bg-gray-100" />)}
+                            </div>
+                          </div>
+                        )}
+                      </>
+                    );
+                  })()}
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          {/* Add Task Modal - keeping existing code */}
+          {showAddTask && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={() => setShowAddTask(false)}>
+              <div className="bg-white rounded-xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-hidden flex flex-col" onClick={(e) => e.stopPropagation()}>
+                <div className="bg-gradient-to-r from-green-600 to-emerald-600 text-white p-6">
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                      <h2 className="text-2xl font-bold mb-2 flex items-center gap-2">
+                        <Plus size={28} />
+                        Create New Task
+                      </h2>
+                      <p className="text-green-100 text-sm">
+                        {selectedDate && `${months[selectedDate.month]} ${selectedDate.day}, 2026`}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => setShowAddTask(false)}
+                      className="p-2 hover:bg-white hover:bg-opacity-20 rounded-full transition flex-shrink-0"
+                    >
+                      <X size={24} />
+                    </button>
+                  </div>
+                </div>
+
+                <div className="flex-1 overflow-y-auto p-6">
+                  <div className="mb-6">
+                    <label className="block font-bold text-lg mb-3 text-gray-800 flex items-center gap-2">
+                      <FileText size={20} />
+                      Task Title *
+                    </label>
+                    <input
+                      type="text"
+                      value={newTask.title}
+                      onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
+                      className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 font-semibold"
+                      placeholder="Enter task title..."
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-6 mb-6">
+                    <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-xl border border-blue-200">
+                      <div className="flex items-center gap-2 text-blue-700 mb-2">
+                        <Calendar size={18} />
+                        <span className="font-semibold">Due Date *</span>
+                      </div>
+                      <input
+                        type="date"
+                        value={selectedDate ? formatDate(selectedDate.year, selectedDate.month, selectedDate.day) : ''}
+                        onChange={(e) => {
+                          const date = new Date(e.target.value);
+                          setSelectedDate({ year: date.getFullYear(), month: date.getMonth(), day: date.getDate() });
+                        }}
+                        className="w-full border rounded-lg px-3 py-2 text-sm font-bold"
+                      />
+                    </div>
+
+                    <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-4 rounded-xl border border-purple-200">
+                      <div className="flex items-center gap-2 text-purple-700 mb-2">
+                        <Clock size={18} />
+                        <span className="font-semibold">Start Date</span>
+                      </div>
+                      <input
+                        type="date"
+                        value={newTask.startDate}
+                        onChange={(e) => setNewTask({ ...newTask, startDate: e.target.value })}
+                        className="w-full border rounded-lg px-3 py-2 text-sm font-bold"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-6 mb-6">
+                    <div className="bg-gradient-to-br from-red-50 to-red-100 p-4 rounded-xl border border-red-200">
+                      <div className="flex items-center gap-2 text-red-700 mb-2">
+                        <Flag size={18} />
+                        <span className="font-semibold">Priority</span>
+                      </div>
+                      <select
+                        value={newTask.priority}
+                        onChange={(e) => setNewTask({ ...newTask, priority: e.target.value })}
+                        className="w-full border rounded-lg px-3 py-2 text-sm font-bold cursor-pointer"
+                      >
+                        <option value="low">Low Priority</option>
+                        <option value="medium">Medium Priority</option>
+                        <option value="high">High Priority</option>
+                      </select>
+                    </div>
+
+                    <div className="bg-gradient-to-br from-orange-50 to-orange-100 p-4 rounded-xl border border-orange-200">
+                      <div className="flex items-center gap-2 text-orange-700 mb-2">
+                        <Tag size={18} />
+                        <span className="font-semibold">Category</span>
+                      </div>
+                      <select
+                        value={newTask.category}
+                        onChange={(e) => setNewTask({ ...newTask, category: e.target.value })}
+                        className="w-full border rounded-lg px-3 py-2 text-sm font-bold cursor-pointer"
+                      >
+                        <option value="">None</option>
+                        {categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
+                      </select>
+                    </div>
+
+                    <div className="bg-gradient-to-br from-green-50 to-green-100 p-4 rounded-xl border border-green-200">
+                      <div className="flex items-center gap-2 text-green-700 mb-2">
+                        <User size={18} />
+                        <span className="font-semibold">Assign To</span>
+                      </div>
+                      <select
+                        value={newTask.assignedTo || ''}
+                        onChange={(e) => setNewTask({ ...newTask, assignedTo: e.target.value ? parseInt(e.target.value) : null })}
+                        className="w-full border rounded-lg px-3 py-2 text-sm font-bold cursor-pointer"
+                      >
+                        <option value="">Unassigned</option>
+                        {developers.map(dev => <option key={dev.id} value={dev.id}>{dev.name}</option>)}
+                      </select>
+                    </div>
+
+                    <div className="bg-gradient-to-br from-indigo-50 to-indigo-100 p-4 rounded-xl border border-indigo-200">
+                      <div className="flex items-center gap-2 text-indigo-700 mb-2">
+                        <Repeat size={18} />
+                        <span className="font-semibold">Recurring</span>
+                      </div>
+                      <select
+                        value={newTask.recurring}
+                        onChange={(e) => setNewTask({ ...newTask, recurring: e.target.value })}
+                        className="w-full border rounded-lg px-3 py-2 text-sm font-bold cursor-pointer"
+                      >
+                        <option value="none">None</option>
+                        <option value="daily">Daily</option>
+                        <option value="weekly">Weekly</option>
+                        <option value="monthly">Monthly</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h3 className="font-bold text-lg mb-3 text-gray-800 flex items-center gap-2">
+                      <Edit size={18} />
+                      Description
+                    </h3>
+                    <textarea
+                      value={newTask.description}
+                      onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
+                      className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 min-h-[120px] focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                      placeholder="Add a description for this task..."
+                    />
+                  </div>
+                </div>
+
+                <div className="border-t p-6 bg-gray-50">
+                  <div className="flex gap-3">
+                    <button
+                      onClick={handleAddTask}
+                      disabled={loading || !newTask.title.trim()}
+                      className="flex-1 bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 font-semibold flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition shadow-lg"
+                    >
+                      {loading ? <Loader size={20} /> : <><Plus size={20} /> Create Task</>}
+                    </button>
+                    <button
+                      onClick={() => setShowAddTask(false)}
+                      className="px-8 bg-gray-300 text-gray-700 py-3 rounded-lg hover:bg-gray-400 font-semibold transition"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Task Details Modal - keeping all existing code */}
+          {selectedTask && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={() => { setSelectedTask(null); setEditingInModal(false); }}>
+              <div className="bg-white rounded-xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-hidden flex flex-col" onClick={(e) => e.stopPropagation()}>
+                <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-6">
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1 mr-4">
+                      {editingInModal ? (
+                        <input
+                          type="text"
+                          value={selectedTask.title}
+                          onChange={(e) => setSelectedTask({ ...selectedTask, title: e.target.value })}
+                          className="w-full text-2xl font-bold bg-white bg-opacity-20 border-b-2 border-white focus:outline-none px-2 py-1 rounded text-white placeholder-white placeholder-opacity-70"
+                        />
+                      ) : (
+                        <h2 className="text-2xl font-bold mb-4">{selectedTask.title}</h2>
+                      )}
+
+                      <div className="flex items-center gap-3 mt-3">
+                        <div className="flex items-center gap-2">
+                          <Activity size={16} />
+                          {editingInModal ? (
+                            <select
+                              value={selectedTask.status}
+                              onChange={(e) => setSelectedTask({ ...selectedTask, status: e.target.value })}
+                              className="px-3 py-1.5 rounded-lg text-sm font-semibold bg-white text-gray-800 cursor-pointer shadow-sm"
+                            >
+                              <option value="pending">Pending</option>
+                              <option value="in-progress">In Progress</option>
+                              <option value="for-qa-testing">For QA Testing</option>
+                              <option value="completed">Completed</option>
+                            </select>
+                          ) : (
+                            <span className={`px-3 py-1.5 rounded-lg text-sm font-semibold shadow-sm ${selectedTask.status === 'completed' ? 'bg-green-500 text-white' :
+                              selectedTask.status === 'in-progress' ? 'bg-orange-500 text-white' :
+                                selectedTask.status === 'for-qa-testing' ? 'bg-blue-400 text-white' :
+                                  'bg-gray-300 text-gray-700'
+                              }`}>
+                              {selectedTask.status === 'for-qa-testing' ? 'For QA Testing' :
+                                selectedTask.status.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
+                            </span>
+                          )}
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          <Flag size={16} />
+                          {editingInModal ? (
+                            <select
+                              value={selectedTask.priority}
+                              onChange={(e) => setSelectedTask({ ...selectedTask, priority: e.target.value })}
+                              className="px-3 py-1.5 rounded-lg text-sm font-semibold bg-white text-gray-800 cursor-pointer shadow-sm"
+                            >
+                              <option value="low">Low Priority</option>
+                              <option value="medium">Medium Priority</option>
+                              <option value="high">High Priority</option>
+                            </select>
+                          ) : (
+                            <span className={`px-3 py-1.5 rounded-lg text-sm font-semibold shadow-sm ${selectedTask.priority === 'high' ? 'bg-red-500 text-white' :
+                              selectedTask.priority === 'medium' ? 'bg-yellow-500 text-white' :
+                                'bg-green-500 text-white'
+                              }`}>
+                              {selectedTask.priority.charAt(0).toUpperCase() + selectedTask.priority.slice(1)} Priority
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => { setSelectedTask(null); setEditingInModal(false); }}
+                      className="p-2 hover:bg-white hover:bg-opacity-20 rounded-full transition flex-shrink-0"
+                    >
+                      <X size={24} />
+                    </button>
+                  </div>
+                </div>
+
+                <div className="flex-1 overflow-y-auto p-6">
+                  <div className="grid grid-cols-2 gap-6 mb-6">
+                    <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-xl border border-blue-200">
+                      <div className="flex items-center gap-2 text-blue-700 mb-2">
+                        <Calendar size={18} />
+                        <span className="font-semibold">Due Date</span>
+                      </div>
+                      <p className="text-lg font-bold text-blue-900">
+                        {new Date(selectedTask.date).toLocaleDateString('en-US', {
+                          weekday: 'short',
+                          year: 'numeric',
+                          month: 'short',
+                          day: 'numeric'
+                        })}
+                      </p>
+                    </div>
+
+                    <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-4 rounded-xl border border-purple-200">
+                      <div className="flex items-center gap-2 text-purple-700 mb-2">
+                        <Clock size={18} />
+                        <span className="font-semibold">Start Date</span>
+                      </div>
+                      {editingInModal ? (
+                        <input
+                          type="date"
+                          value={selectedTask.startDate || ''}
+                          onChange={(e) => setSelectedTask({ ...selectedTask, startDate: e.target.value })}
+                          className="w-full border rounded-lg px-2 py-1 text-sm"
+                        />
+                      ) : (
+                        <p className="text-lg font-bold text-purple-900">
+                          {selectedTask.startDate && selectedTask.startDate.trim() !== '' ? (
+                            new Date(selectedTask.startDate).toLocaleDateString('en-US', {
+                              year: 'numeric',
+                              month: 'short',
+                              day: 'numeric'
+                            })
+                          ) : (
+                            <span className="text-purple-400 font-normal">Not set</span>
+                          )}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="bg-gradient-to-br from-green-50 to-green-100 p-4 rounded-xl border border-green-200">
+                      <div className="flex items-center gap-2 text-green-700 mb-2">
+                        <User size={18} />
+                        <span className="font-semibold">Assigned To</span>
+                      </div>
+                      {editingInModal ? (
+                        <select
+                          value={selectedTask.assignedTo || ''}
+                          onChange={(e) => setSelectedTask({ ...selectedTask, assignedTo: e.target.value ? parseInt(e.target.value) : null })}
+                          className="w-full border rounded-lg px-2 py-1 text-sm"
+                        >
+                          <option value="">Unassigned</option>
+                          {developers.map(dev => <option key={dev.id} value={dev.id}>{dev.name}</option>)}
+                        </select>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          {selectedTask.assignedTo && getDeveloperById(selectedTask.assignedTo) ? (
+                            <>
+                              <div className="w-4 h-4 rounded-full" style={{ backgroundColor: getDeveloperById(selectedTask.assignedTo).color }}></div>
+                              <p className="text-lg font-bold text-green-900">{getDeveloperById(selectedTask.assignedTo).name}</p>
+                            </>
+                          ) : (
+                            <p className="text-lg font-bold text-green-400">Unassigned</p>
+                          )}
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="bg-gradient-to-br from-orange-50 to-orange-100 p-4 rounded-xl border border-orange-200">
+                      <div className="flex items-center gap-2 text-orange-700 mb-2">
+                        <Tag size={18} />
+                        <span className="font-semibold">Category</span>
+                      </div>
+                      {editingInModal ? (
+                        <select
+                          value={selectedTask.category || ''}
+                          onChange={(e) => setSelectedTask({ ...selectedTask, category: e.target.value })}
+                          className="w-full border rounded-lg px-2 py-1 text-sm"
+                        >
+                          <option value="">None</option>
+                          {categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
+                        </select>
+                      ) : (
+                        <p className="text-lg font-bold text-orange-900">{selectedTask.category || 'None'}</p>
+                      )}
+                    </div>
+
+                    {(selectedTask.recurring !== 'none' || editingInModal) && (
+                      <div className="bg-gradient-to-br from-indigo-50 to-indigo-100 p-4 rounded-xl border border-indigo-200 col-span-2">
+                        <div className="flex items-center gap-2 text-indigo-700 mb-2">
+                          <Repeat size={18} />
+                          <span className="font-semibold">Recurring</span>
+                        </div>
+                        {editingInModal ? (
+                          <select
+                            value={selectedTask.recurring}
+                            onChange={(e) => setSelectedTask({ ...selectedTask, recurring: e.target.value })}
+                            className="w-full border rounded-lg px-2 py-1 text-sm"
+                          >
+                            <option value="none">None</option>
+                            <option value="daily">Daily</option>
+                            <option value="weekly">Weekly</option>
+                            <option value="monthly">Monthly</option>
+                          </select>
+                        ) : (
+                          <p className="text-lg font-bold text-indigo-900 capitalize">{selectedTask.recurring}</p>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  {(selectedTask.description || editingInModal) && (
+                    <div className="mb-6">
+                      <h3 className="font-bold text-lg mb-3 text-gray-800 flex items-center gap-2">
+                        <Edit size={18} />
+                        Description
+                      </h3>
+                      {editingInModal ? (
+                        <textarea
+                          value={selectedTask.description}
+                          onChange={(e) => setSelectedTask({ ...selectedTask, description: e.target.value })}
+                          className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 min-h-[100px] focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          placeholder="Add a description..."
+                        />
+                      ) : (
+                        <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
+                          <p className="text-gray-700 whitespace-pre-wrap">{selectedTask.description}</p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  <div>
+                    <h3 className="font-bold text-lg mb-3 text-gray-800 flex items-center gap-2">
+                      <MessageSquare size={18} />
+                      Comments <span className="text-sm text-gray-500">({selectedTask.comments?.length || 0})</span>
+                    </h3>
+
+                    <div className="space-y-3 mb-4 max-h-60 overflow-y-auto">
+                      {selectedTask.comments && selectedTask.comments.length > 0 ? (
+                        selectedTask.comments.map((comment, idx) => (
+                          <div key={idx} className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-r-lg shadow-sm">
+                            <div className="flex justify-between items-start mb-2">
+                              <span className="font-bold text-blue-900">{comment.author}</span>
+                              <span className="text-xs text-blue-600">
+                                {new Date(comment.timestamp).toLocaleString('en-US', {
+                                  month: 'short',
+                                  day: 'numeric',
+                                  hour: '2-digit',
+                                  minute: '2-digit'
+                                })}
+                              </span>
+                            </div>
+                            <p className="text-gray-700">{comment.text}</p>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="text-gray-400 text-center py-6 italic">No comments yet. Be the first to comment!</p>
+                      )}
+                    </div>
+
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={newComment}
+                        onChange={(e) => setNewComment(e.target.value)}
+                        onKeyPress={(e) => e.key === 'Enter' && addComment(selectedTask)}
+                        placeholder="Add a comment..."
+                        className="flex-1 border-2 border-gray-200 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      />
+                      <button
+                        onClick={() => addComment(selectedTask)}
+                        disabled={!newComment.trim()}
+                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                      >
+                        <Plus size={20} />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="border-t p-6 bg-gray-50">
+                  <div className="flex gap-3">
+                    {editingInModal ? (
+                      <>
+                        <button
+                          onClick={handleUpdateInModal}
+                          disabled={loading}
+                          className="flex-1 bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 font-semibold flex items-center justify-center gap-2 disabled:opacity-50 transition shadow-lg"
+                        >
+                          {loading ? <Loader size={20} /> : <><Save size={20} /> Save Changes</>}
+                        </button>
+                        <button
+                          onClick={() => {
+                            setEditingInModal(false);
+                            const originalTask = tasks[selectedTask.date]?.find(t => t.id === selectedTask.id);
+                            if (originalTask) {
+                              setSelectedTask({ ...originalTask, date: selectedTask.date });
+                            }
+                          }}
+                          className="flex-1 bg-gray-300 text-gray-700 py-3 rounded-lg hover:bg-gray-400 font-semibold transition"
+                        >
+                          Cancel
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <button
+                          onClick={() => setEditingInModal(true)}
+                          className="flex-1 bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 font-semibold flex items-center justify-center gap-2 transition shadow-lg"
+                        >
+                          <Edit size={20} /> Edit Task
+                        </button>
+                        <button
+                          onClick={() => handleDeleteTask(selectedTask.id)}
+                          className="px-6 bg-red-600 text-white py-3 rounded-lg hover:bg-red-700 font-semibold transition shadow-lg"
+                        >
+                          Delete
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Manage Developers Modal */}
+          {showManageDev && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={() => setShowManageDev(false)}>
+              <div className="bg-white rounded-lg p-6 w-[500px] max-w-full mx-4" onClick={(e) => e.stopPropagation()}>
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-xl font-semibold">Manage Developers</h3>
+                  <button onClick={() => setShowManageDev(false)} className="p-1 hover:bg-gray-100 rounded"><X size={20} /></button>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={newDevName}
+                      onChange={(e) => setNewDevName(e.target.value)}
+                      onKeyPress={(e) => e.key === 'Enter' && addDeveloper()}
+                      className="flex-1 border border-gray-300 rounded-lg px-3 py-2"
+                      placeholder="Developer name"
+                    />
+                    <input
+                      type="color"
+                      value={newDevColor || colors[developers.length % colors.length]}
+                      onChange={(e) => setNewDevColor(e.target.value)}
+                      className="w-14 h-10 border border-gray-300 rounded-lg cursor-pointer"
+                    />
+                    <button onClick={addDeveloper} className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                      <Plus size={20} />
+                    </button>
+                  </div>
+
+                  <div className="space-y-2 max-h-96 overflow-y-auto">
+                    {developers.map(dev => (
+                      <div key={dev.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg group">
+                        <div className="flex items-center gap-3">
+                          <input
+                            type="color"
+                            value={dev.color}
+                            onChange={(e) => updateDeveloper(dev.id, { color: e.target.value })}
+                            className="w-8 h-8 rounded cursor-pointer"
+                          />
+                          <span className="font-medium">{dev.name}</span>
+                        </div>
+                        <button onClick={() => removeDeveloper(dev.id)} className="p-1 hover:bg-gray-200 rounded text-red-600">
+                          <X size={18} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<TaskCalendar />);
+  </script>
+</body>
+
+</html>

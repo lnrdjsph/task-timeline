@@ -8,7 +8,7 @@ ini_set('display_errors', 1);
 echo "<h1>Developer API Diagnostic</h1>";
 
 echo "<h2>Step 1: Database Connection</h2>";
-include_once __DIR__ . 'config/database.php';
+include_once __DIR__ . '/config/database.php';
 $database = new Database();
 $db = $database->getConnection();
 
@@ -20,7 +20,7 @@ if ($db) {
 }
 
 echo "<h2>Step 2: Load Developer Model</h2>";
-include_once __DIR__ . 'models/Developer.php';
+include_once __DIR__ . '/models/Developer.php';
 echo "✅ Developer.php included<br>";
 
 echo "<h2>Step 3: Create Developer Object</h2>";

@@ -29,7 +29,7 @@ $uri_parts = explode('/', trim(parse_url($request_uri, PHP_URL_PATH), '/'));
 
 // Remove 'tasktimeline' and 'api' from the path
 $uri_parts = array_values(array_filter($uri_parts, function ($part) {
-    return !in_array($part, ['tasktimeline', 'api']);
+    return !in_array($part, ['task-timeline', 'api']);
 }));
 
 $endpoint = $uri_parts[0] ?? '';

@@ -2,8 +2,8 @@
 class Database {
     private $host = "172.20.60.21";
     private $db_name = "tasktimeline";
-    private $username = "root";
-    private $password = "";
+    private $username = "apiuser";
+    private $password = "StrongP@ssw0rd123!";
     public $conn;
 
     public function getConnection() {

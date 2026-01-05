@@ -1,6 +1,6 @@
 <?php
 class Database {
-    private $host = "127.0.0.1";
+    private $host = "172.20.60.21";
     private $db_name = "tasktimeline";
     private $username = "root";
     private $password = "";
